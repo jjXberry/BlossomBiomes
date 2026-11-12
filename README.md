@@ -24,6 +24,21 @@ The **shape of the land never changes**: only the biome does (colours, trees, fl
 
 Villages, mineshafts, ruined portals, trail ruins and strongholds can still appear in the Blossom biomes, and ores are the same as normal.
 
+## Builds in the biomes (new in 1.1)
+
+Each biome also gets its own small builds, so it doesn't just look like a recoloured forest:
+
+| Biome | Builds |
+|---|---|
+| Sakura Forest | Giant sakura trees with wide canopies, hanging blossoms and petal carpets, red torii gates, stone lanterns, fallen cherry logs |
+| Blossom Meadows | Mossy boulders, stone lanterns, beehives on posts, the odd giant sakura |
+| Moonlight Garden | Amethyst crystal spires, glowing moonstones (froglights) in the grass, glowing moss, soul lanterns |
+| Emerald Grove | Mossy boulders, fallen jungle logs, glowing moss |
+| Frosted Blossom Valley | Snow-covered giant sakura trees, ice spikes, stone lanterns |
+| Ancient Blossom Sanctuary | Broken stone pillars, glowing torchflower patches, soul lanterns |
+
+How often each appears is set in `config.yml` under `decorations`. They only appear in **new** land.
+
 ## The Ancient Blossom Sanctuary
 
 - **Every monster that spawns there is an "Ancient" elite**: 2.5× health, 1.6× damage, faster, armoured, and they don't burn in the sun. They drop extra loot (emeralds, diamonds, golden apples, netherite scrap) and 15 Petals.
@@ -75,6 +90,13 @@ You need two files:
    ```
    That covers spawn, the 5k–10k ring where Blossom biomes start, and the first sanctuaries.
 
+## /biomes menu (new in 1.1)
+
+`/biomes` opens a menu with all six biomes, what they're like and where to find them.
+**Staff can click a biome to teleport to the nearest one**, or type `/biomes sakura_forest`.
+The search runs in the background, so the server doesn't freeze. Players without
+`blossombiomes.teleport` (ops have it) can look at the menu but not teleport.
+
 ## Testing it
 
 As an op:
@@ -82,11 +104,31 @@ As an op:
 - `/blossombiomes sanctuary` gives the coordinates of the nearest sanctuary, and `/tp` there
 - `/biome` (everyone) shows which biome you're in. Walking into a Blossom biome also shows its name as a title.
 
+## The resource pack (required for everyone)
+
+`BlossomPack.zip` adds softer cherry leaves and petals, glowing torchflowers, custom textures for the
+Sanctuary treasure, and custom menu icons in `/blossom`, `/kits`, `/settings` and `/biomes`.
+
+1. On GitHub make a **public** repository called **BlossomPack** and upload **`BlossomPack.zip`** (still zipped).
+2. Stop the server and open **`server.properties`**. Set these lines (they already exist, just fill them in):
+   ```
+   resource-pack=https://raw.githubusercontent.com/josiahvilma123-oss/BlossomPack/main/BlossomPack.zip
+   resource-pack-sha1=091c6b881a8d38efb93be4710030172a1ad5d74c
+   require-resource-pack=true
+   resource-pack-prompt={"text":"Blossom SMP needs its resource pack for custom items and menus.","color":"light_purple"}
+   ```
+3. Start the server. Players get a download prompt; anyone who says no can't join.
+
+The plugins switch the custom textures on by themselves once `resource-pack=` has a link
+(`custom-icons: auto`). If you ever change the pack, the `resource-pack-sha1` must change too.
+
 ## Commands
 
 | Command | Who | What it does |
 |---|---|---|
 | `/biome` | Everyone | Shows which biome you're in |
+| `/biomes` | Everyone | The biomes menu. Staff click a biome to teleport to the nearest one |
+| `/biomes <biome>` | Staff | Teleport to the nearest one, e.g. `/biomes moonlight_garden` |
 | `/blossombiomes where` | Staff | Your biome and distance from spawn |
 | `/blossombiomes sanctuary` | Staff | Coordinates of the nearest sanctuary |
 | `/blossombiomes shrines` | Staff | How many shrines exist, and how many are sealed, awake or claimed |
