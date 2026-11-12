@@ -45,6 +45,7 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
     private Placement.Settings settings;
     private Shrines shrines;
     private Mobs mobs;
+    private BiomesMenu menu;
 
     @Override
     public void onEnable() {
@@ -53,10 +54,13 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
         shrines = new Shrines(this);
         shrines.load();
         mobs = new Mobs(this);
+        menu = new BiomesMenu(this);
+        Items.customModels = customIcons();
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(menu, this);
         getServer().getPluginManager().registerEvents(shrines, this);
         getServer().getPluginManager().registerEvents(mobs, this);
-        for (String name : List.of("biome", "blossombiomes")) {
+        for (String name : List.of("biome", "biomes", "blossombiomes")) {
             PluginCommand command = getCommand(name);
             if (command != null) {
                 command.setExecutor(this);
@@ -94,8 +98,9 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
     public void onWorldInit(WorldInitEvent event) {
         World world = event.getWorld();
         if (world.getBiomeProvider() instanceof BlossomBiomeProvider provider) {
+            world.getPopulators().add(new DecorationPopulator(this, provider));
             world.getPopulators().add(new ShrinePopulator(this, provider));
-            getLogger().info("Sanctuary shrines will be built in world '" + world.getName() + "'.");
+            getLogger().info("Sanctuary shrines and biome decorations will be built in world '" + world.getName() + "'.");
         }
     }
 
@@ -125,6 +130,24 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
             out.add(n.contains(":") ? n : "minecraft:" + n);
         }
         return out;
+    }
+
+    /**
+     * Custom item models and menu icons are only used when the server sends a resource pack,
+     * otherwise players would see purple-black "missing" items.
+     * config.yml custom-icons: auto (default) / true / false
+     */
+    private boolean customIcons() {
+        String mode = String.valueOf(getConfig().getString("custom-icons", "auto")).toLowerCase(Locale.ROOT);
+        if (mode.equals("true") || mode.equals("false")) {
+            return mode.equals("true");
+        }
+        String pack = getServer().getResourcePack();
+        return pack != null && !pack.isBlank();
+    }
+
+    public BlossomBiomeProvider provider(String worldName) {
+        return providers.get(worldName);
     }
 
     public Placement.Settings placementSettings() {
@@ -200,6 +223,23 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("biomes")) {
+            if (!(sender instanceof Player player)) {
+                send(sender, "players-only");
+                return true;
+            }
+            if (args.length > 0 && player.hasPermission("blossombiomes.teleport")) {
+                CustomBiome biome = CustomBiome.byKey(args[0].toLowerCase(Locale.ROOT));
+                if (biome == null) {
+                    send(player, "unknown-biome", "{biome}", args[0]);
+                } else {
+                    menu.teleport(player, biome);
+                }
+                return true;
+            }
+            menu.open(player);
+            return true;
+        }
         if (command.getName().equalsIgnoreCase("biome")) {
             if (!(sender instanceof Player player)) {
                 send(sender, "players-only");
@@ -220,6 +260,7 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
         switch (sub) {
             case "reload" -> {
                 reloadConfig();
+                Items.customModels = customIcons();
                 send(sender, "reloaded");
             }
             case "where" -> {
@@ -268,6 +309,14 @@ public final class BlossomBiomes extends JavaPlugin implements Listener, TabExec
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> out = new ArrayList<>();
+        if (command.getName().equalsIgnoreCase("biomes") && args.length == 1 && sender.hasPermission("blossombiomes.teleport")) {
+            for (CustomBiome biome : CustomBiome.values()) {
+                if (biome.id.startsWith(args[0].toLowerCase(Locale.ROOT))) {
+                    out.add(biome.id);
+                }
+            }
+            return out;
+        }
         if (command.getName().equalsIgnoreCase("blossombiomes") && args.length == 1
                 && sender.hasPermission("blossombiomes.admin")) {
             for (String option : List.of("where", "sanctuary", "shrines", "reload")) {

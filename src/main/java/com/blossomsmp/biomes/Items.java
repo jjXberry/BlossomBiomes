@@ -18,10 +18,27 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/** Builds menu icons and reads kit items from the config. */
+/** Builds menu icons and reads loot items from the config. */
 public final class Items {
 
+    /** True when the server sends the Blossom resource pack, so custom models are safe to use. */
+    public static volatile boolean customModels;
+
     private Items() {
+    }
+
+    /** Gives an item a model from the Blossom resource pack (only if the pack is in use). */
+    public static ItemStack model(ItemStack item, String model) {
+        if (!customModels || model == null || model.isBlank() || item == null) {
+            return item;
+        }
+        NamespacedKey key = NamespacedKey.fromString(model.contains(":") ? model : "blossom:" + model);
+        ItemMeta meta = item.getItemMeta();
+        if (key != null && meta != null) {
+            meta.setItemModel(key);
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     // ------------------------------------------------------------------ menu icons
@@ -175,6 +192,14 @@ public final class Items {
             }
             if (Boolean.TRUE.equals(extra.get("unbreakable"))) {
                 meta.setUnbreakable(true);
+            }
+            Object model = extra.get("model");
+            if (model != null && customModels) {
+                NamespacedKey key = NamespacedKey.fromString(String.valueOf(model).contains(":")
+                        ? String.valueOf(model) : "blossom:" + model);
+                if (key != null) {
+                    meta.setItemModel(key);
+                }
             }
             Object color = extra.get("color");
             if (color != null && meta instanceof LeatherArmorMeta leather) {

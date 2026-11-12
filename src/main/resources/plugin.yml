@@ -1,5 +1,5 @@
 name: BlossomBiomes
-version: 1.0.0
+version: 1.1.1
 main: com.blossomsmp.biomes.BlossomBiomes
 api-version: '1.21'
 author: BlossomSMP
@@ -10,6 +10,9 @@ load: STARTUP
 commands:
   biome:
     description: Shows which biome you are in
+  biomes:
+    description: The Blossom biomes menu (staff can click to teleport)
+    usage: /biomes [biome]
   blossombiomes:
     description: Staff commands for BlossomBiomes
     aliases: [bbiomes]
@@ -17,6 +20,9 @@ commands:
     permission: blossombiomes.admin
 
 permissions:
+  blossombiomes.teleport:
+    description: Click a biome in /biomes (or /biomes <biome>) to teleport to the nearest one
+    default: op
   blossombiomes.admin:
     description: Use /blossombiomes, and break a shrine chest by sneaking (removes it)
     default: op

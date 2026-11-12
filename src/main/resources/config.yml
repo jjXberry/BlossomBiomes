@@ -63,6 +63,75 @@ subtitles:
   frosted_blossom_valley: "&7Blossoms under the snow"
   ancient_blossom_sanctuary: "&cAncient guardians watch this place"
 
+# Custom item and menu textures from the Blossom resource pack.
+#   auto  = on when server.properties has a resource-pack link (recommended)
+#   true / false = force on or off
+custom-icons: auto
+
+# How far /biomes looks for the nearest biome before giving up (blocks)
+teleport-search-radius: 30000
+
+# What /biomes says about each biome
+biome-info:
+  sakura_forest:
+    - "&7Thick cherry blossom forest."
+    - "&7Giant sakura trees, torii gates"
+    - "&7and stone lanterns."
+    - "&8Found 5,000+ blocks from spawn"
+  blossom_meadows:
+    - "&7Rolling hills of flowers,"
+    - "&7lone cherry trees and beehives."
+    - "&8Found 5,000+ blocks from spawn"
+  moonlight_garden:
+    - "&7A garden that glows at night:"
+    - "&7crystal spires, moonstones,"
+    - "&7fireflies and glowing moss."
+    - "&8Found 5,000+ blocks from spawn"
+  emerald_grove:
+    - "&7Giant jungle trees, mossy rocks"
+    - "&7and lots of emerald ore."
+    - "&8Found 5,000+ blocks from spawn"
+  frosted_blossom_valley:
+    - "&7Cherry trees in the snow,"
+    - "&7frozen lakes and ice spikes."
+    - "&8Replaces cold land past 5,000 blocks"
+  ancient_blossom_sanctuary:
+    - "&#FFD98ASuper rare."
+    - "&7Ancient guardians protect a shrine"
+    - "&7full of legendary treasure."
+    - "&8Only 10,000+ blocks from spawn"
+
+# Builds that generate in the biomes: chance per chunk (0 to 1). Only affects NEW land.
+decorations:
+  enabled: true
+  sakura_forest:
+    giant-sakura: 0.22
+    torii-gate: 0.04
+    stone-lantern: 0.12
+    fallen-log: 0.12
+  blossom_meadows:
+    boulder: 0.10
+    stone-lantern: 0.06
+    beehive-post: 0.07
+    giant-sakura: 0.03
+  moonlight_garden:
+    crystal-spire: 0.18
+    moonstones: 0.25
+    glow-moss: 0.5
+    soul-lantern: 0.08
+  emerald_grove:
+    boulder: 0.25
+    fallen-log: 0.25
+    glow-moss: 0.15
+  frosted_blossom_valley:
+    giant-sakura: 0.14
+    ice-spike: 0.15
+    stone-lantern: 0.06
+  ancient_blossom_sanctuary:
+    broken-pillar: 0.45
+    torchflowers: 0.35
+    soul-lantern: 0.15
+
 # The command that gives Petals ({player}, {amount}). "" = no Petals.
 petals-command: "petals give {player} {amount}"
 
@@ -149,6 +218,7 @@ shrine-loot:
     - "NETHERITE_INGOT 2"
     - item: "PINK_PETALS 1"
       name: "&#FFD98A&lEternal Petal"
+      model: blossom:eternal_petal
       lore: ["&#FFD98AMythic", "&7A petal from the first tree.", "&7It never wilts."]
       glow: true
   # Extra random picks (higher weight = more common)
@@ -156,18 +226,22 @@ shrine-loot:
   random:
     - item: "NETHERITE_SWORD 1 sharpness:5 unbreaking:3 mending:1 fire_aspect:2 looting:3 sweeping_edge:3"
       name: "&#FFD98A&lEternal Blossom Blade"
+      model: blossom:eternal_blossom_blade
       lore: ["&#FFD98AMythic", "&7Forged where the first blossom fell."]
       weight: 2
     - item: "NETHERITE_SWORD 1 sharpness:5 unbreaking:3 mending:1 knockback:2"
       name: "&#F4A9C0&lSakura Katana"
+      model: blossom:sakura_katana
       lore: ["&#E27D9CLegendary"]
       weight: 3
     - item: "BOW 1 power:5 punch:2 flame:1 infinity:1 unbreaking:3"
       name: "&#F4A9C0&lPetal Bow"
+      model: blossom:petal_bow
       lore: ["&#E27D9CLegendary"]
       weight: 4
     - item: "NETHERITE_PICKAXE 1 efficiency:5 fortune:3 unbreaking:3 mending:1"
       name: "&#3FBF62&lEmerald Blossom Pickaxe"
+      model: blossom:emerald_blossom_pickaxe
       lore: ["&#E27D9CLegendary"]
       weight: 4
     - item: "SHIELD 1 unbreaking:3 mending:1"
@@ -176,22 +250,27 @@ shrine-loot:
       weight: 4
     - item: "NETHERITE_HELMET 1 protection:4 unbreaking:3 mending:1"
       name: "&#F4A9C0Sanctuary Crown"
+      model: blossom:sanctuary_crown
       lore: ["&#B48CFFEpic"]
       weight: 3
     - item: "NETHERITE_CHESTPLATE 1 protection:4 unbreaking:3 mending:1"
       name: "&#F4A9C0Sanctuary Guard"
+      model: blossom:sanctuary_guard
       lore: ["&#B48CFFEpic"]
       weight: 3
     - item: "NETHERITE_LEGGINGS 1 protection:4 unbreaking:3 mending:1"
       name: "&#F4A9C0Sanctuary Greaves"
+      model: blossom:sanctuary_greaves
       lore: ["&#B48CFFEpic"]
       weight: 3
     - item: "NETHERITE_BOOTS 1 protection:4 feather_falling:4 unbreaking:3 mending:1"
       name: "&#F4A9C0Sanctuary Treads"
+      model: blossom:sanctuary_treads
       lore: ["&#B48CFFEpic"]
       weight: 3
     - item: "AMETHYST_SHARD 1"
       name: "&#9AA8FF&lMoonlight Crystal"
+      model: blossom:moonlight_crystal
       lore: ["&#E27D9CLegendary", "&7Still cold from the night sky."]
       glow: true
       weight: 4
@@ -223,9 +302,25 @@ messages:
   shrine-claimed-broadcast: "&#FFD98A✦ &f{player} &7claimed the treasure of an &#FFD98AAncient Blossom Sanctuary&7!"
   shrine-unbreakable: "&cThe shrine's magic holds it in place."
   shrine-removed: "&7Shrine removed."
+  menu-title: "&8✿ Blossom Biomes"
+  menu-close: "&cClose"
+  menu-info-name: "&f&lThe Blossom biomes"
+  menu-info:
+    - "&7Six biomes you won't find anywhere else."
+    - "&7They start &f5,000 blocks &7from spawn."
+    - "&7Type &f/biome &7to see where you are."
+  menu-click-teleport: "&#F4A9C0Click to teleport to the nearest one"
+  menu-explore: "&7Go exploring to find it!"
+  menu-no-teleport: "&cOnly staff can teleport. Go exploring to find it!"
+  searching: "Looking for the nearest {biome}&7..."
+  not-found: "&cNo {biome} &cwithin {radius} blocks."
+  teleported: "Welcome to {biome}&7! &8({x}, {z})"
+  unknown-biome: "&cThere is no Blossom biome called &f{biome}&c."
   admin-help:
     - "&#F4A9C0&l✿ BlossomBiomes"
     - " &f/biome &8- &7which biome you're in (everyone)"
+    - " &f/biomes &8- &7the biomes menu; staff can click to teleport"
+    - " &f/biomes <biome> &8- &7teleport to the nearest one (staff)"
     - " &f/blossombiomes where &8- &7biome and distance from spawn"
     - " &f/blossombiomes sanctuary &8- &7coordinates of the nearest sanctuary"
     - " &f/blossombiomes shrines &8- &7how many shrines exist and are claimed"

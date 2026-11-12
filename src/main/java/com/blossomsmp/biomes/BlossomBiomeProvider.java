@@ -12,7 +12,9 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Gives every spot its vanilla biome, except where {@link Placement} says a Blossom biome goes.
@@ -25,6 +27,12 @@ public final class BlossomBiomeProvider extends BiomeProvider {
     private final Map<String, Placement> placements = new ConcurrentHashMap<>();
     private final Map<String, BiomeProvider> vanillaProviders = new ConcurrentHashMap<>();
     private volatile Map<CustomBiome, Biome> biomes;
+    private final AtomicBoolean warnedEarly = new AtomicBoolean();
+
+    /** Every minecraft: biome that is NOT in the overworld (checked against Minecraft 1.21.11's is_overworld tag). */
+    private static final Set<String> NOT_OVERWORLD = Set.of("basalt_deltas", "crimson_forest", "end_barrens",
+            "end_highlands", "end_midlands", "nether_wastes", "small_end_islands", "soul_sand_valley",
+            "the_end", "the_void", "warped_forest");
 
     public BlossomBiomeProvider(BlossomBiomes plugin) {
         this.plugin = plugin;
@@ -54,9 +62,35 @@ public final class BlossomBiomeProvider extends BiomeProvider {
         return placement(world);
     }
 
-    /** Minecraft's own biome picker for this world (made once, then reused). */
+    /**
+     * Minecraft's own biome picker for this world (made once, then reused).
+     * Paper can only hand this over once the world has finished being built, so it is
+     * never asked for while the world is still being created (see getBiomes).
+     */
     private BiomeProvider vanilla(WorldInfo world) {
         return vanillaProviders.computeIfAbsent(world.getName(), name -> world.vanillaBiomeProvider());
+    }
+
+    /** The vanilla biome at a spot, or plains if Paper isn't ready yet (only possible in the first moment of startup). */
+    private Biome vanillaBiome(WorldInfo world, int x, int y, int z) {
+        try {
+            return vanilla(world).getBiome(world, x, y, z);
+        } catch (RuntimeException early) {
+            if (warnedEarly.compareAndSet(false, true)) {
+                plugin.getLogger().warning("Minecraft's biome picker wasn't ready yet for world '" + world.getName()
+                        + "', used plains for that early check. This is harmless.");
+            }
+            return Biome.PLAINS;
+        }
+    }
+
+    /** The Blossom biome on the surface at x, z (null = vanilla). Safe on any thread. */
+    public CustomBiome surfaceBiome(WorldInfo world, int x, int z) {
+        if (biomes == null) {
+            return null;
+        }
+        Biome vanilla = vanillaBiome(world, x, 80, z);
+        return placement(world).pick(x, z, vanilla.getKey().toString());
     }
 
     public boolean active() {
@@ -65,7 +99,7 @@ public final class BlossomBiomeProvider extends BiomeProvider {
 
     @Override
     public Biome getBiome(WorldInfo world, int x, int y, int z) {
-        Biome vanilla = vanilla(world).getBiome(world, x, y, z);
+        Biome vanilla = vanillaBiome(world, x, y, z);
         Map<CustomBiome, Biome> custom = biomes;
         if (custom == null) {
             return vanilla;
@@ -76,7 +110,16 @@ public final class BlossomBiomeProvider extends BiomeProvider {
 
     @Override
     public List<Biome> getBiomes(WorldInfo world) {
-        List<Biome> list = new ArrayList<>(vanilla(world).getBiomes(world));
+        // Paper asks for this list WHILE the world is being built, before Minecraft's own biome
+        // picker exists, so the overworld biomes are listed straight from the biome registry.
+        List<Biome> list = new ArrayList<>();
+        Registry<Biome> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
+        for (Biome biome : registry) {
+            NamespacedKey key = biome.getKey();
+            if (key.getNamespace().equals(NamespacedKey.MINECRAFT) && !NOT_OVERWORLD.contains(key.getKey())) {
+                list.add(biome);
+            }
+        }
         Map<CustomBiome, Biome> custom = resolve();
         if (custom != null) {
             for (Biome biome : custom.values()) {
