@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "blossom:sakura_forest",
+    "blossom:blossom_meadows",
+    "blossom:moonlight_garden",
+    "blossom:emerald_grove",
+    "blossom:frosted_blossom_valley",
+    "blossom:ancient_blossom_sanctuary"
+  ]
+}
